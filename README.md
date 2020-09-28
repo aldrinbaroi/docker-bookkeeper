@@ -1,1 +1,1 @@
-# docker-bookkeeper
+# Docker image packaging for Apache BookKeeper
