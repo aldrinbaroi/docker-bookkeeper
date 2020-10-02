@@ -17,7 +17,7 @@ if [[ ! -f "${BK_SERVER_CONF}" ]]; then
 		journalDirectories=$JOURNAL_DIRECTORIES
 		ledgerStorageClass=$LEDGER_STORAGE_CLASS
 		ledgerDirectories=$LEDGER_DIRECTORIES
-		metadataServiceUri=$METADATA_SERVICE_URI
+		allowStorageExpansion=$ALLOW_STORAGE_EXPANSION
 		zkServers=$ZK_SERVERS
 		zkTimeout=$ZK_TIMEOUT
 		zkEnableSecurity=$ZK_ENABLE_SECURITY
@@ -33,15 +33,21 @@ fi
 
 isZkServerReachable()
 {
-	local zkServer=$1
-	if (( $(echo 'srvr' | nc $zkServer 2181 > /dev/null 2>&1; echo $?) )); then
-		echo 0
-	else
-		echo 1
-	fi
+        local zkServer=$1
+        local hostAndPort=""
+        local host=""
+        local port=0
+        IFS=':' read -r -a hostAndPort <<< "$zkServer"
+        host=${hostAndPort[0]}
+        port=${hostAndPort[1]}
+        if (( $(echo srvr | nc $host $port > /dev/null 2>&1; echo $?) )); then
+                echo 0
+        else
+                echo 1
+        fi 
 } 
 
-source $BK_SERVER_CONF
+source $BK_SERVER_CONF > /dev/null 2>&1
 
 # If the command is bookkeeper then check if zookeeper nodes are reachable & if not then abort.  
 if [[ "$CMD" == "bookkeeper" ]]; then
@@ -65,13 +71,13 @@ if [[ "$CMD" == "bookkeeper" ]]; then
 		fi
 	done
 	if (( $reachable == 1 )); then
-		exec "$@"
+		exec gosu bookkeeper "$@"
 	else
 		echo "Zookeeper servers are not reachable. Tried 3 times.  Aborting..."
 		exit 1
 	fi
 else
-	exec "$@"
+	exec gosu bookkeeper "$@"
 fi
 
 

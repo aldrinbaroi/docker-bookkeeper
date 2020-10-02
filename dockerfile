@@ -16,10 +16,9 @@ ENV BOOKKEEPER_VERSION=$BOOKKEEPER_VERSION \
     HTTP_SERVER_ENABLED=false \
     HTTP_SERVER_PORT=8080 \
     HTTP_SERVER_CLASS=org.apache.bookkeeper.http.vertx.VertxHttpServer \
-    JOURNAL_DIRECTORIES=/tmp/bk-txn \
+    JOURNAL_DIRECTORIES=/var/data/bookkeeper/journals \
     LEDGER_STORAGE_CLASS=org.apache.bookkeeper.bookie.SortedLedgerStorage \
-    LEDGER_DIRECTORIES=/tmp/bk-data \
-    METADATA_SERVICE_URI=zk+hierarchical://zk1:2181;zk2:2181;zk3:2181/ledgers \
+    LEDGER_DIRECTORIES=/var/data/bookkeeper/ledgers \
     ZK_SERVERS=zk1:2181,zk2:2181,zk3:2181 \
     ZK_TIMEOUT=10000 \
     ZK_ENABLE_SECURITY=false \
@@ -27,9 +26,10 @@ ENV BOOKKEEPER_VERSION=$BOOKKEEPER_VERSION \
     DLOG_BKC_ENSEMBLE_SIZE=3 \
     DLOG_BKC_WRITE_QUORUM_SIZE=2 \
     DLOG_BKC_ACK_QUORUM_SIZE=2 \
-    STORAGE_RANGE_STORE_DIRS=data/bookkeeper/ranges \
+    STORAGE_RANGE_STORE_DIRS=/var/data/bookkeeper/ranges \
     STORAGE_SERVE_READONLY_TABLES=false \
     STORAGE_CLUSTER_CONTROLLER_SCHEDULE_INTERVAL_MS=30000 \
+    ALLOW_STORAGE_EXPANSION=true \
     PATH=$PATH:$BK_HOME/bin 
 
 # Add bookkeeper user
@@ -78,7 +78,10 @@ RUN set -eux \
     && gpg --batch --verify "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz" \
     && tar -vzxf "$DISTRO_NAME.tar.gz" \
     && rm -rf "$GNUPGHOME" "$DISTRO_NAME.tar.gz" "$DISTRO_NAME.tar.gz.asc" "$DISTRO_NAME.tar.gz.sha512" "$BK_SERVER_CONF" \
-    && chown -R bookkeeper:bookkeeper "$BK_HOME"
+    && mkdir -p "$JOURNAL_DIRECTORIES" \
+    && mkdir -p "$LEDGER_DIRECTORIES" \
+    && mkdir -p "$STORAGE_RANGE_STORE_DIRS" \
+    && chown -R bookkeeper:bookkeeper "$BK_HOME" "$JOURNAL_DIRECTORIES" "$LEDGER_DIRECTORIES" "$STORAGE_RANGE_STORE_DIRS"
 
 WORKDIR $BK_HOME 
 EXPOSE 3181 8080 4181 
