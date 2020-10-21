@@ -1,0 +1,22 @@
+#!/bin/bash 
+
+source bk-cluster.conf
+
+exeShellCmd() {
+	local _CMD=$1
+	local _CMD_ARGS=$2
+	docker run -it --rm --network $NETWORK_NAME \
+		--env ZK_SERVERS="$ZK_SERVERS" \
+		--env "console.log(process.env)" $IMAGE bookkeeper shell $_CMD $_CMD_ARGS
+}
+
+initNewCluster() {
+	exeShellCmd "initnewcluster" 
+}
+
+nukeExistingCluster() {
+	local _CMD_ARGS=$1	
+	exeShellCmd "nukeexistingcluster" "$_CMD_ARGS"
+}
+
+#::END:: 

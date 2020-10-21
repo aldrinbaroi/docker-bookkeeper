@@ -1,0 +1,8 @@
+#!/bin/bash 
+
+source util-common
+
+nukeExistingCluster '--zkledgersrootpath /ledgers -f'  
+
+#::END:: 
+
